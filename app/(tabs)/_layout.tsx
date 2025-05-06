@@ -1,54 +1,57 @@
-import { View, Image } from "react-native";
-import React from "react";
-import { Tabs } from "expo-router";
-import { icons } from "@/constants/icons"; 
+import React from "react"
+import { Tabs } from "expo-router"
+import { Image, ImageBackground, Text, View } from "react-native"
+import { images } from "@/constants/images"
+import { icons } from "@/constants/icons"
 
-const TabIcon = ({ focused, icon }: any) => {
+const TabIcon = ({ focused, icon, title }: any) => {
+  if (focused) {
+    return (
+      <ImageBackground
+        source={images.highlight}
+        className="flex flex-row w-full flex-1 min-w-[112px] min-h-16 mt-4 justify-center items-center rounded-full overflow-hidden"
+      >
+        <Image
+          source={icon}
+          tintColor="#151312"
+          className="size-5"
+        />
+        <Text className="text-secondary text-base font-semibold ml-2">
+          {title}
+        </Text>
+      </ImageBackground>
+    )
+  }
   return (
-    <View
-      style={{
-        justifyContent: "center",
-        alignItems: "center",
-        width: 50, 
-        height: 50, 
-        borderRadius: 25, 
-        backgroundColor: focused ? "#A8B5DB" : "transparent", 
-        padding: 8, 
-      }}
-    >
+    <View className="size-full justify-center items-center mt-4 rounded-full">
       <Image
         source={icon}
-        style={{
-          width: 24, 
-          height: 24, 
-          tintColor: focused ? "#fff" : "#A8B5DB", 
-        }}
+        tintColor="#A8B5DB"
+        className="size-5"
       />
     </View>
-  );
-};
+  )
+}
 
 const _layout = () => {
   return (
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: "#0f0D23",
-          borderRadius: 50,
-          marginHorizontal: 20,
-          marginBottom: 20, 
-          height: 60, 
-          position: "absolute",
-          bottom: 10,
-          borderWidth: 1,
-          borderColor: "#0f0D23",
-          paddingTop: 10, 
-        },
         tabBarItemStyle: {
+          width: "100%",
+          height: "100%",
           justifyContent: "center",
           alignItems: "center",
-          height: "100%",
+        },
+        tabBarStyle: {
+          backgroundColor: "#0F0D23",
+          borderRadius: 50,
+          marginHorizontal: 20,
+          marginBottom: 36,
+          height: 52,
+          position: "absolute",
+          overflow: "hidden",
         },
       }}
     >
@@ -58,7 +61,11 @@ const _layout = () => {
           title: "Home",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.home} />
+            <TabIcon
+              focused={focused}
+              icon={icons.home}
+              title="Home"
+            />
           ),
         }}
       />
@@ -68,7 +75,11 @@ const _layout = () => {
           title: "Search",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.search} />
+            <TabIcon
+              focused={focused}
+              icon={icons.search}
+              title="Search"
+            />
           ),
         }}
       />
@@ -78,7 +89,11 @@ const _layout = () => {
           title: "Saved",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.save} />
+            <TabIcon
+              focused={focused}
+              icon={icons.save}
+              title="Saved"
+            />
           ),
         }}
       />
@@ -88,12 +103,16 @@ const _layout = () => {
           title: "Profile",
           headerShown: false,
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.person} />
+            <TabIcon
+              focused={focused}
+              icon={icons.person}
+              title="Profile"
+            />
           ),
         }}
       />
     </Tabs>
-  );
-};
+  )
+}
 
-export default _layout;
+export default _layout

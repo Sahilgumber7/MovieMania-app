@@ -1,118 +1,112 @@
-import { View, Text, Image, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native"
-import { useLocalSearchParams, useRouter } from "expo-router"
-import { useEffect, useState } from "react"
+import { Image, ScrollView, Text, View } from "react-native"
+import { Link, useLocalSearchParams } from "expo-router"
+import GoBackButton from "@/components/GoBackButton"
+import { icons } from "@/constants/icons"
 import { fetchMovieDetails } from "@/services/api"
-import Ionicons from "react-native-vector-icons/Ionicons"
+import useFetch from "@/services/useFetch"
 
-export default function MovieDetails() {
+interface MovieInfoProps {
+  label: string
+  value?: string | number | null
+}
+
+const MovieInfo = ({ label, value }: MovieInfoProps) => (
+  <View className="flex-col items-start justify-center mt-5">
+    <Text className="text-light-200 font-normal text-sm">{label}</Text>
+    <Text className="text-light-100 font-bold text-sm mt-2">
+      {value || "N/A"}
+    </Text>
+  </View>
+)
+
+const MovieDetails = () => {
   const { id } = useLocalSearchParams()
-  const router = useRouter()
-  const [movie, setMovie] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
 
-  useEffect(() => {
-    const getMovie = async () => {
-      try {
-        const movieId = Array.isArray(id) ? id[0] : id
-        const data = await fetchMovieDetails(movieId)
-        console.log("Fetched movie data:", data)
-        setMovie(data)
-      } catch (err) {
-        setError("Failed to load movie details.")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    getMovie()
-  }, [id])
-
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-primary">
-        <ActivityIndicator size="large" color="#ffffff" />
-      </View>
-    )
-  }
-
-  if (error || !movie) {
-    return (
-      <View className="flex-1 justify-center items-center bg-primary px-4">
-        <Text className="text-white text-lg text-center">
-          {error || "Movie not found"}
-        </Text>
-      </View>
-    )
-  }
+  const { data: movie, loading } = useFetch(() =>
+    fetchMovieDetails(id as string)
+  )
 
   return (
-    <View className="flex-1 bg-primary">
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        {movie.poster && (
+    <View className="bg-primary flex-1">
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: 80,
+        }}
+      >
+        <View>
           <Image
-            source={{ uri: movie.poster }}
+            source={{
+              uri: `https://image.tmdb.org/t/p/w500${movie?.poster_path}`,
+            }}
             className="w-full h-[550px]"
-            resizeMode="cover"
+            resizeMode="stretch"
           />
-        )}
-
-        <View className="px-5 mt-4">
-          <Text className="text-white text-2xl font-bold">
-            {movie.title || "N/A"}
-          </Text>
-          <Text className="text-gray-400 text-sm mt-1">
-            {movie.release_date?.split("-")[0] || "N/A"} • {movie.runtime || "N/A"}m
-          </Text>
-
-          <View className="flex-row items-center bg-dark-100 px-3 py-2 rounded-md mt-3 gap-x-2">
+        </View>
+        <View className="flex-col items-start justify-center mt-5 px-5">
+          <Text className="text-white font-bold text-xl">{movie?.title}</Text>
+          {movie?.belongs_to_collection && (
+            <Link
+              href={`/collections/${movie.belongs_to_collection?.id}`}
+              className="text-gray-300 font-semibold text-md underline"
+            >
+              {movie.belongs_to_collection.name || "Movies collection"}
+            </Link>
+          )}
+          <View className="flex-row items-center gap-x-1 mt-2">
+            <Text className="text-light-200 text-sm">
+              {movie?.release_date.split("-")[0]}
+            </Text>
+            <Text className="text-light-200 text-sm">{movie?.runtime}m</Text>
+          </View>
+          <View className="flex-row items-center bg-dark-100 px-2 py-1 rounded-md gap-x-1 mt-2">
             <Image
-              source={require("@/assets/icons/star.png")}
-              className="w-4 h-4"
+              source={icons.star}
+              className="size-4"
             />
             <Text className="text-white font-bold text-sm">
-              {Math.round(movie.vote_average)}/10
+              {Math.round(movie?.vote_average ?? 0)}/10
             </Text>
             <Text className="text-light-200 text-sm">
-              ({movie.vote_count || 0} votes)
+              ({movie?.vote_count} votes)
             </Text>
           </View>
+          <MovieInfo
+            label="Overview"
+            value={movie?.overview}
+          />
+          <MovieInfo
+            label="Genres"
+            value={
+              movie?.genres?.map((genre) => genre.name).join(" • ") || "N/A"
+            }
+          />
 
-          <Text className="text-light-200 mt-5 font-normal text-sm">Overview</Text>
-          <Text className="text-white mt-2 font-semibold text-sm">
-            {movie.overview || "N/A"}
-          </Text>
-
-          <Text className="text-light-200 mt-5 font-normal text-sm">Genres</Text>
-          <Text className="text-white mt-2 font-semibold text-sm">
-            {Array.isArray(movie.genres)
-              ? movie.genres.map((g: any) => g?.name).join(" • ")
-              : "N/A"}
-          </Text>
-
-          <View className="flex-row justify-between mt-5">
-            <View>
-              <Text className="text-light-200 text-sm">Budget</Text>
-              <Text className="text-white mt-2 font-semibold text-sm">
-                ${Math.round((movie.budget || 0) / 1_000_000)}M
-              </Text>
-            </View>
-            <View>
-              <Text className="text-light-200 text-sm">Revenue</Text>
-              <Text className="text-white mt-2 font-semibold text-sm">
-                ${Math.round((movie.revenue || 0) / 1_000_000)}M
-              </Text>
-            </View>
+          <View className="flex flex-row justify-between w-1/2">
+            <MovieInfo
+              label="Budget"
+              value={`$${(movie?.budget ?? 0) / 1_000_000} million`}
+            />
+            <MovieInfo
+              label="Revenue"
+              value={`$${Math.round(
+                (movie?.revenue ?? 0) / 1_000_000
+              )} million`}
+            />
           </View>
+
+          <MovieInfo
+            label="Production Companies"
+            value={
+              movie?.production_companies
+                ?.map((company) => company.name)
+                .join(" • ") || "N/A"
+            }
+          />
         </View>
       </ScrollView>
-
-      <TouchableOpacity
-        onPress={() => router.back()}
-        className="absolute top-12 left-5 z-10 bg-black/50 rounded-full p-2"
-      >
-        <Ionicons name="arrow-back" size={24} color="#fff" />
-      </TouchableOpacity>
+      <GoBackButton />
     </View>
   )
 }
+
+export default MovieDetails
